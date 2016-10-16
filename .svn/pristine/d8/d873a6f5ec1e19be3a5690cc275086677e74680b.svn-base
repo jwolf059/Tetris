@@ -1,0 +1,162 @@
+/*
+ * Assignment 6
+ * 
+ * TCSS305 Autumn 2015
+ */
+package view;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import model.Board;
+
+/**
+ * Sets and Creates the movement controls for the Tetris game. 
+ * 
+ * @author Jeremy Wolf
+ * @version 29 November 2015
+ *
+ */
+public class PieceMovement extends KeyAdapter implements PropertyChangeListener {
+
+    /**
+     * Static Field for the Default Left key.
+     */
+    private static final int LEFT = KeyEvent.VK_LEFT;
+    
+    /**
+     * Static Field for the Default right key.
+     */
+    private static final int RIGHT = KeyEvent.VK_RIGHT;
+    
+    /**
+     * Static Field for the Default Down key.
+     */
+    private static final int DOWN = KeyEvent.VK_DOWN;
+    
+    /**
+     * Static Field for the Default Left key.
+     */
+    private static final int ROTATE = KeyEvent.VK_UP;
+    
+    /**
+     * Static Field for the Default Left key.
+     */
+    private static final int HARD_DROP = KeyEvent.VK_SPACE;
+   
+    /**
+     * Field for the left Key.
+     */
+    private int myLeft;
+    
+    /**
+     * Field for the right Key.
+     */
+    private int myRight;
+    
+    /**
+     * Field for the down Key.
+     */
+    private int myDown;
+    
+    /**
+     * Field for the rotate Key.
+     */
+    private int myRotate;
+    
+    /**
+     * Field for the Hard Drop Key.
+     */
+    private int myHardDrop;
+    
+    /**
+     * Field to store the Board.
+     */
+    private final Board myBoard;
+    /**
+     * Constructs a PieceMovement Object.
+     * 
+     * @param theBoard the current tetris game board.
+     */
+    public PieceMovement(final Board theBoard) {
+        super();
+        myBoard = theBoard;
+        myLeft = LEFT;
+        myRight = RIGHT;
+        myDown = DOWN;
+        myRotate = ROTATE;
+        myHardDrop = HARD_DROP;
+    }
+    @Override
+    public void keyPressed(final KeyEvent theEvent) {
+        final int location = theEvent.getKeyCode();
+        if (location == myLeft) {
+            myBoard.moveLeft();
+        } else if (location == myRight) {
+            myBoard.moveRight();
+        } else if (location == myDown) {
+            myBoard.moveDown();
+        } else if (location == myRotate) {
+            myBoard.rotate();
+        } else if (location == myHardDrop) {
+            myBoard.hardDrop();
+        }
+    }
+    
+    /**
+     * Setter method for the left key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setLeft(final int theKey) {
+        myLeft = theKey;
+    }
+    
+    /**
+     * Setter method for the right key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setRight(final int theKey) {
+        myRight = theKey;
+    }
+    
+    /**
+     * Setter method for the Down key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setDown(final int theKey) {
+        myDown = theKey;
+    }
+    
+    /**
+     * Setter method for the Rotate key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setRotate(final int theKey) {
+        myRotate = theKey;
+    }
+    
+    /**
+     * Setter method for the hard Drop key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setHardDrop(final int theKey) {
+        myHardDrop = theKey;
+    }
+    @Override
+    public void propertyChange(final PropertyChangeEvent theEvt) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+
+
+}
+
+   

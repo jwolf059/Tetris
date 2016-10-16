@@ -1,0 +1,92 @@
+/*
+ * Assignment 6
+ * 
+ * TCSS305 Autumn 2015
+ */
+package view;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.Timer;
+
+import model.Board;
+
+/**
+ * Timer for the Tetris game. Sets up the starting delay 
+ * and step delay.
+ * 
+ * @author Jeremy Wolf
+ * @version 25 November 2015
+ *
+ */
+public class TetrisTimer extends Timer implements Observer {
+    
+    /**
+     * Static field to store start Delay in milliseconds.
+     */
+    public static final int START_DELAY = 20;
+    
+    /**
+     * Static field to store step Delay in milliseconds.
+     */
+    public static final int STEP_DELAY = 1000;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3997728054689962567L;
+
+    /**
+     * Field to store the current game board.
+     */
+    private final Board myGameBoard;
+    
+    /**
+     * Field to store the Score Panel.
+     */
+    private final ScorePanel myScorePanel;
+    
+    /**
+     * Constructs a Tetris Timer.
+     * 
+     * @param theBoard the Tetris game board.
+     * @param thePanel the Score Panel.
+     */
+    public TetrisTimer(final Board theBoard, final ScorePanel thePanel) {
+        super(STEP_DELAY, null);
+        myGameBoard = theBoard;
+        myScorePanel = thePanel;
+        myScorePanel.getScoreObject().addObserver(this);
+        setInitialDelay(START_DELAY);
+        addActionListener(new MoveListener());
+        
+    }
+    @Override
+    public void update(final Observable theO, final Object theArg) {
+        final double delayMultiplyer = 0.90;
+        final int newDelay = (int) Math.round(STEP_DELAY * delayMultiplyer);
+        setDelay(newDelay);
+        
+    }
+    
+    /**
+     * A class that listens for the timer events and moves the 
+     * piece on the game board.
+     * 
+     * @author Jeremy Wolf
+     * @version 25 November 2015
+     */
+    private class MoveListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+            myGameBoard.step();
+        
+        }
+    }
+
+
+
+}

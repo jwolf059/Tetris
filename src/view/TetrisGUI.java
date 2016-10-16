@@ -1,0 +1,484 @@
+/*
+ * Assignment 6
+ * 
+ * TCSS305 - Autumn 2015
+ */
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+
+import model.Board;
+
+/**
+ * Creates a Tetris GUI that contains a JPane that is the game board.
+ * 
+ * @author Jeremy Wolf
+ * @version 24 November 2015
+ */
+public class TetrisGUI extends JPanel implements Observer {
+
+    /**
+     * A generated serial version UID for object Serialization.
+     */
+    private static final long serialVersionUID = 6976966673265920001L;
+    
+    /**
+     * Static field for the boardX.
+     */
+    private static final int BOARD_X = 10;
+    
+    /**
+     * Static field for the boardY.
+     */
+    private static final int BOARD_Y = 20;
+    
+    /**
+     * Field to store the main JFrame.
+     */
+    private final JFrame myMainFrame;
+    
+    /**
+     * Field to store the next piece drawing panel.
+     */
+    private TetrisNextPiecePanel myNextPiece;
+    
+    /**
+     * Field to store the drawing Panel for the Game board.
+     */
+    private TetrisDrawingPanel myTetrisBoard;
+    
+    /**
+     * Field to store Tetris Timer.
+     */
+    private final TetrisTimer myTimer;
+    
+    /**
+     * Field to store the Tetris Board.
+     */
+    private final Board myBoard;
+    
+    /**
+     * Field to store the West JPanel.
+     */
+    private final JPanel mySidePanelEast;
+    
+    /**
+     * Field to store the BombTracker JPanel.
+     */
+    private BombTracker myBombTracker;
+    
+    /**
+     * Field to store the Info JPanel.
+     */
+    private final JPanel myInfoPanel;
+    
+    /**
+     * Field to store boolean for is game paused.
+     */
+    private boolean myPause;
+    
+    /**
+     * Field to store the PieceMovement Object.
+     */
+    private final PieceMovement myPieceMovement;
+    
+    /**
+     * Field to store the Score Panel.
+     */
+    private ScorePanel myCenterPanel;
+    
+    /**
+     * Field to store the NewGame JMenuItem.
+     */
+    private JMenuItem myNewGame;
+    
+    /**
+     * Field to store the EndGame JMenuItem.
+     */
+    private JMenuItem myEndGame;
+
+    /**
+     * Constructor for the TetrisGUI.
+     */
+    public TetrisGUI() {
+        super(new BorderLayout());
+        myMainFrame = new JFrame("Tetris");
+        myBoard = new Board(BOARD_X, BOARD_Y);
+        mySidePanelEast = createWestPanel();
+        myPieceMovement = new PieceMovement(myBoard);
+        myInfoPanel = setUpInfoPanel();
+        setUpComponents();
+        myTimer = new TetrisTimer(myBoard, myCenterPanel);
+    }
+    
+    /**
+     * Sets up the GUI Components.
+     */
+    private void setUpComponents() {
+        myPause = false;
+        final int strutThickness = 20;
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        myMainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myMainFrame.setFocusable(true);
+        this.setOpaque(false);
+        
+        
+        // Sets up the Gradient Panel which is the overall background.
+        final GradientPanel gPanel = new GradientPanel(myMainFrame);
+        gPanel.setLayout(new BorderLayout());
+        myMainFrame.setContentPane(gPanel);
+        gPanel.add(this);
+
+        
+        //Sets up all Information Panels to be added to the GUI.
+        final int drawingX = 300;
+        final int drawingY = 600;
+        final int nextX = 190;
+        final int nextY = 160;
+        myBombTracker = bombTrackerPanel();
+        myCenterPanel = createMiddlePanel();
+        myTetrisBoard = new TetrisDrawingPanel(drawingX, drawingY, myBoard, myCenterPanel);
+        myNextPiece = new TetrisNextPiecePanel(nextX, nextY, myBoard);
+        mySidePanelEast.add(myNextPiece);
+        mySidePanelEast.add(Box.createVerticalStrut(strutThickness));
+        mySidePanelEast.add(myCenterPanel);
+        mySidePanelEast.add(Box.createVerticalStrut(strutThickness));
+        mySidePanelEast.setOpaque(false);
+        mySidePanelEast.add(myInfoPanel);
+        mySidePanelEast.add(Box.createVerticalStrut(strutThickness));
+        mySidePanelEast.add(myBombTracker);
+        final JPanel middleSpace = setUpSpacerPanel();
+        add(myTetrisBoard);
+        add(middleSpace);
+        setUpBorderPanels();
+        add(mySidePanelEast);
+        myBoard.addObserver(myCenterPanel);
+
+
+        final int mainFrameWidth = 570;
+        final int mainFrameHeight =  700;
+        
+        myBoard.addObserver(this);
+        myMainFrame.addKeyListener(myPieceMovement);
+        myPieceMovement.setPause(true);
+        final JMenuBar menu = tetrisMenu();
+        myMainFrame.setJMenuBar(menu);
+        myMainFrame.add(this);
+        myMainFrame.setMaximumSize(new Dimension(mainFrameWidth, mainFrameHeight));
+        myMainFrame.setMinimumSize(new Dimension(mainFrameWidth, mainFrameHeight));
+        myMainFrame.setVisible(true);
+    }
+    
+
+    /**
+     * Sets up the West JPanel.
+     * 
+     * @return the West JPanel.
+     */
+    private JPanel createWestPanel() {
+        final int width = 200;
+        final int height =  600;
+        final JPanel sidePanelWest = new JPanel();
+        sidePanelWest.setMinimumSize(new Dimension(width, height));
+        sidePanelWest.setMaximumSize(new Dimension(width, height));
+        sidePanelWest.setLayout(new BoxLayout(sidePanelWest, BoxLayout.Y_AXIS));
+        sidePanelWest.setAlignmentX(CENTER_ALIGNMENT);
+        return sidePanelWest;
+    }
+    
+    
+    /**
+     * Sets up the middle JPanel.
+     * 
+     * @return the middle JPanel.
+     */
+    private ScorePanel createMiddlePanel() {
+        final int width = 190;
+        final int height =  160;
+        final ScorePanel middlePanel = new ScorePanel(myBombTracker);
+        middlePanel.setMinimumSize(new Dimension(width, height));
+        middlePanel.setMaximumSize(new Dimension(width, height));
+        return middlePanel;
+    }
+    
+    /**
+     * Sets up the Info Panel with controller information. 
+     * 
+     * @return the InfoPanel.
+     */
+    private InfoPanel setUpInfoPanel() {
+        final int width = 190;
+        final int height =  190;
+        final InfoPanel infoPanel = new InfoPanel(myPieceMovement);
+        infoPanel.setMinimumSize(new Dimension(width, height));
+        infoPanel.setMaximumSize(new Dimension(width, height));
+        return infoPanel;
+        
+        
+        
+    }
+    
+    /**
+     * Sets up the border panels. The main frame has a North, south,
+     * west border that is created in this method.
+     */
+    private void setUpBorderPanels() {
+        final int widthNS = 600;
+        final int heightNS =  20;
+        final int width = 20;
+        final int height =  600;
+        final JPanel westPanel = new JPanel();
+        final JPanel northPanel = new JPanel();
+        final JPanel southPanel = new JPanel();
+        final Dimension newNS = new Dimension(widthNS, heightNS);
+        final Dimension newW = new Dimension(width, height);
+        westPanel.setOpaque(false);
+        southPanel.setOpaque(false);
+        northPanel.setOpaque(false);
+        westPanel.setPreferredSize(newW);
+        northPanel.setPreferredSize(newNS);
+        southPanel.setPreferredSize(newNS);
+        myMainFrame.add(southPanel, BorderLayout.SOUTH);
+        myMainFrame.add(northPanel, BorderLayout.NORTH);
+        myMainFrame.add(westPanel, BorderLayout.WEST);
+    }
+    
+    /**
+     * Sets up the panels for a spacer between the tetris board
+     * and the Content panels.
+     * 
+     * @return the spacer panel.
+     */
+    private JPanel setUpSpacerPanel() {
+        final int width = 20;
+        final int height = 600;
+        final Dimension newW = new Dimension(width, height);
+        final JPanel space = new JPanel();
+        space.setMaximumSize(newW);
+        space.setMinimumSize(newW);
+        space.setOpaque(false);
+        
+        return space;
+    }
+    
+    /**
+     * Creates the BombTracker panel to be placed at the bottom of the east Panel.
+     * @return the BombTracker panel.
+     */
+    private BombTracker bombTrackerPanel() {
+        final int width = 190;
+        final int height = 100;
+        final BombTracker bT = new BombTracker(myPieceMovement);
+        final Dimension newD = new Dimension(width, height);
+        myPieceMovement.addPropertyChangeListener(bT);
+        bT.setMaximumSize(newD);
+        bT.setMinimumSize(newD);
+        return bT;
+        
+    }
+    /**
+     * Update method when notification is received from the Observable object.
+     */
+    @Override
+    public void update(final Observable theObject, final Object theArg) {
+        if (myBoard.isGameOver()) {
+            myTimer.stop();
+            gameOver();
+        }
+    } 
+    
+    /**
+     * Pops up a JOptionPane to tell the player the game is over.
+     */
+    private void gameOver() {
+        JOptionPane.showMessageDialog(null, "Game Over!", 
+                                      "Game Over", JOptionPane.PLAIN_MESSAGE);
+        myNewGame.setEnabled(true);
+        myEndGame.setEnabled(false);
+        
+    }
+    
+    /**
+     * Creates the JMenuBar for the Tetris MainFrame.
+     * 
+     * @return the JMenuBar.
+     */
+    private JMenuBar tetrisMenu() {
+        final JMenuBar menuBar = new JMenuBar();
+        final JMenu file = new JMenu("File");
+        menuBar.add(file);
+        final JMenuItem pauseItem = new JMenuItem("Pause");
+        myNewGame = new JMenuItem("New Game");
+        myEndGame = new JMenuItem("End Game");
+        final JMenuItem close = new JMenuItem("Close");
+        closeItem(close);
+        pauseItem(pauseItem);
+        file.add(pauseItem);
+        file.add(myNewGame);
+        newGameItem(myNewGame, myEndGame);
+        endGameItem(myEndGame, myNewGame);
+        file.add(myEndGame);
+
+        
+        
+        file.addSeparator();
+        file.add(close);
+        final JMenu help = new JMenu("Help");
+        menuBar.add(help);
+        helpMenu(help);
+        return menuBar;
+    }
+    
+    /**
+     * Adds an Action Listener and accelerator to the close JMenuItem that will close the
+     * game.
+     * 
+     * @param theClose is the Close JMenuItem.
+     */
+    private void closeItem(final JMenuItem theClose) {
+        
+        theClose.setAccelerator(KeyStroke.getKeyStroke(
+                                KeyEvent.VK_X, ActionEvent.META_MASK));
+        
+        theClose.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                myMainFrame.dispatchEvent(new WindowEvent(myMainFrame, 
+                                                          WindowEvent.WINDOW_CLOSING));
+                
+            }
+            
+        });
+    }
+    /**
+     * Adds an Action Listener and accelerator to the pause JMenuItem that will pause 
+     * and unpause the game.
+     * @param thePause is the pause JMenuItem.
+     */
+    private void pauseItem(final JMenuItem thePause) {
+        thePause.setAccelerator(KeyStroke.getKeyStroke(
+                                KeyEvent.VK_P, ActionEvent.META_MASK));
+        
+        thePause.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvt) {
+                if (myPause) {
+                    myTimer.start();
+                    myPause = false;
+                    myPieceMovement.setPause(false);
+                } else {
+                    myTimer.stop();
+                    myPause = true;
+                    myPieceMovement.setPause(true);
+                }
+            } 
+        });
+    }
+    
+    /**
+     * Adds an Action Listener and accelerator to the endGame JMenuItem 
+     * that will end the game.
+     * 
+     * @param theItem is the End Game JMenuItem.
+     * @param theNewItem is the newGameItem.
+     */
+    private void endGameItem(final JMenuItem theItem, final JMenuItem theNewItem) {
+        theItem.setAccelerator(KeyStroke.getKeyStroke(
+                               KeyEvent.VK_E, ActionEvent.META_MASK));
+        theItem.setEnabled(false);
+        theItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvt) {
+                myTimer.stop();
+                myPause = true;
+                myPieceMovement.setPause(true);
+                theNewItem.setEnabled(true);
+                gameOver(); 
+            } 
+        });
+    }
+    
+    /**
+     * Adds an Action Listener and accelerator to the NewGame JMenuItem 
+     * that will start a new game.
+     * 
+     * @param theItem is the New Game JMenuItem.
+     * @param theEnd is the End Game JMenuItem.
+     */
+    private void newGameItem(final JMenuItem theItem, final JMenuItem theEnd) {
+        theItem.setAccelerator(KeyStroke.getKeyStroke(
+                                KeyEvent.VK_N, ActionEvent.META_MASK));
+        theItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvt) {
+                
+                myPieceMovement.setPause(false);
+                myBoard.newGame(BOARD_X, BOARD_Y, null);
+                myCenterPanel.resetValues();
+                myPieceMovement.setPause(false);
+                theItem.setEnabled(false);
+                theEnd.setEnabled(true);
+                myTimer.start();
+            }
+            
+        });
+    }
+    
+    /**
+     * Creates the About JMenuItem that contains information about the game and scoring.
+     * 
+     * @param theMenu is the JMenu that the About JMenuItem will be attached to.
+     */
+    private void helpMenu(final JMenu theMenu) {
+        final String title = "About";
+        final JMenuItem about = new JMenuItem(title);
+        theMenu.add(about);
+        about.setAccelerator(KeyStroke.getKeyStroke(
+                             KeyEvent.VK_A, ActionEvent.META_MASK));
+        final StringBuilder sB = new StringBuilder();
+        sB.append("Scoring: The score is caculated by the number of lines cleared \n");
+
+        sB.append("and the current level. The base score for each line is 50 points\n");
+        sB.append("and the base points are multiplied for each level.\n \n");
+        sB.append("Leveling: Leveling up will happen every 7 lines cleared. Lines "
+                        + "destoryed\n");
+        sB.append("by bombing counts towards the next level.\n \n");
+        sB.append("BOMBS: You will start with 3 bombs and will earn a extra bomb every "
+                        + "time\n");
+        sB.append("7 levels reached. Bombs will destroy up to 7 lines including "
+                        + "the 3\n");
+        sB.append("lines the bomb piece is on.\n");
+
+        about.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                JOptionPane.showMessageDialog(null, sB.toString(), 
+                                              title, JOptionPane.PLAIN_MESSAGE);
+            }
+        });
+    }
+}
+
+

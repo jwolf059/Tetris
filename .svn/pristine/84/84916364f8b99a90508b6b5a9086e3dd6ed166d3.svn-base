@@ -1,0 +1,298 @@
+/*
+ * Assignment 6
+ * 
+ * TCSS305 Autumn 2015
+ */
+package view;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+
+import model.Board;
+
+/**
+ * Sets and Creates the movement controls for the Tetris game. 
+ * 
+ * @author Jeremy Wolf
+ * @version 29 November 2015
+ *
+ */
+public class PieceMovement extends KeyAdapter {
+
+    /**
+     * Static Field for the Default Left key.
+     */
+    private static final int LEFT = KeyEvent.VK_LEFT;
+    
+    /**
+     * Static Field for the Default right key.
+     */
+    private static final int RIGHT = KeyEvent.VK_RIGHT;
+    
+    /**
+     * Static Field for the Default Down key.
+     */
+    private static final int DOWN = KeyEvent.VK_DOWN;
+    
+    /**
+     * Static Field for the Default Left key.
+     */
+    private static final int ROTATE = KeyEvent.VK_UP;
+    
+    /**
+     * Static Field for the Default Left key.
+     */
+    private static final int HARD_DROP = KeyEvent.VK_SPACE;
+   
+    /**
+     * Static Field for the Default Bomb key.
+     */
+    private static final int BOMB_DROP = KeyEvent.VK_B;
+    
+    /**
+     * Field for the left Key.
+     */
+    private int myLeft;
+    
+    /**
+     * Field for the right Key.
+     */
+    private int myRight;
+    
+    /**
+     * Field for the down Key.
+     */
+    private int myDown;
+    
+    /**
+     * Field for the rotate Key.
+     */
+    private int myRotate;
+    
+    /**
+     * Field for the Hard Drop Key.
+     */
+    private int myHardDrop;
+    
+    /**
+     * Field for the Bomb Drop Key.
+     */
+    private int myBombDrop;
+    
+    /**
+     * Field to store the Boolean value for Bombs Available.
+     */
+    private boolean myBombsAvailable;
+    
+    /**
+     * Field to store the Board.
+     */
+    private final Board myBoard;
+
+    /**
+     * Field to store if the game is paused.
+     */
+    private boolean myPaused;
+    
+    /**
+     * Field to store PropertyChangeSupport.
+     */
+    private final PropertyChangeSupport myPcs;
+    /**
+     * Constructs a PieceMovement Object.
+     * 
+     * @param theBoard the current tetris game board.
+     */
+    public PieceMovement(final Board theBoard) {
+        super();
+        myPcs = new PropertyChangeSupport(this);
+        myBombsAvailable = true;
+        myPaused = false;
+        myBoard = theBoard;
+        setUpValues();
+    }
+    
+    /**
+     * Sets up values for all the control fields.
+     */
+    private void setUpValues() {
+        myLeft = LEFT;
+        myRight = RIGHT;
+        myDown = DOWN;
+        myRotate = ROTATE;
+        myHardDrop = HARD_DROP;
+        myBombDrop = BOMB_DROP;
+    }
+    @Override
+    public void keyPressed(final KeyEvent theEvent) {
+        final int location = theEvent.getKeyCode();
+        if (!myPaused) {
+            if (location == myLeft) {
+                myBoard.moveLeft();
+            } else if (location == myRight) {
+                myBoard.moveRight();
+            } else if (location == myDown) {
+                myBoard.moveDown();
+            } else if (location == myRotate) {
+                myBoard.rotate();
+            } else if (location == myHardDrop) {
+                myBoard.hardDrop();
+            } else if (location == myBombDrop) {
+                if (myBombsAvailable) {
+                    myBoard.setBombActive();
+                    myPcs.firePropertyChange("BombUsed", 0, 1);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Setter method for the left key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setLeft(final int theKey) {
+        myLeft = theKey;
+    }
+    
+    /**
+     * Setter method for the right key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setRight(final int theKey) {
+        myRight = theKey;
+    }
+    
+    /**
+     * Setter method for the Down key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setDown(final int theKey) {
+        myDown = theKey;
+    }
+    
+    /**
+     * Setter method for the Rotate key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setRotate(final int theKey) {
+        myRotate = theKey;
+    }
+    
+    /**
+     * Setter method for the hard Drop key.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setHardDrop(final int theKey) {
+        myHardDrop = theKey;
+    }
+        
+    /**
+     * Setter method for myBombDrop.
+     * 
+     * @param theKey integer for the new key.
+     */
+    public void setBombDrop(final int theKey) {
+        myBombDrop = theKey;
+    }
+    
+    /**
+     * Setter method for myPaused.
+     * 
+     * @param theStatus the current status of the game.
+     */
+    public void setPause(final boolean theStatus) {
+        myPaused = theStatus;
+    }
+    
+    /**
+     * Setter method for the myBombsAvailable.
+     * 
+     * @param theVal the boolean value representing availability of a bomb.
+     */
+    public void setBombsAvailable(final boolean theVal) {
+        myBombsAvailable = theVal;
+    }
+    
+    /**
+     * Getter method for the left key.
+     * 
+     * @return the int value assigned to myLeft.
+     */
+    public int getLeft() {
+        return myLeft;
+    }
+    
+    /**
+     * Getter method for the Right key.
+     * 
+     * @return the int value assigned to myRight.
+     */
+    public int getRight() {
+        return myRight;
+    }
+    
+    /**
+     * Getter method for the Down key.
+     * 
+     * @return the int value assigned to myDown.
+     */
+    public int getDown() {
+        return myDown;
+    }
+    
+    /**
+     * Getter method for the Drop key.
+     * 
+     * @return the int value assigned to myHardDrop.
+     */
+    public int getDrop() {
+        return myHardDrop;
+    }
+    
+    /**
+     * Getter method for the Rotate key.
+     * 
+     * @return the int value assigned to myRotate.
+     */
+    public int getRotate() {
+        return myRotate;
+    }
+    
+    /**
+     * Getter method for the Bomb key.
+     * 
+     * @return the int value assigned to myBombDrop.
+     */
+    public int getBomb() {
+        return myBombDrop;
+    }
+    
+    /**
+     * Adds the PropertyChangeListener to the list of PropertyChangeListeners
+     * created by objects of this class. 
+     * 
+     * @param thePcl the PropertyChangeListener added.
+     */
+    public void addPropertyChangeListener(final PropertyChangeListener thePcl) {
+        myPcs.addPropertyChangeListener(thePcl);
+    }
+    
+    /**
+     * Removes a PropertyChangeListener to from the list of PropertyChangeListeners
+     * created by objects of this class. 
+     * 
+     * @param thePcl the PropertyChangeListener to be removed.
+     */
+    public void removePropertyChangeListener(final PropertyChangeListener thePcl) {
+        myPcs.removePropertyChangeListener(thePcl);
+    }
+}
+
+   

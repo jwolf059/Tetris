@@ -1,0 +1,443 @@
+/*
+ * Assignment 6
+ * 
+ * TCSS305 - Autumn 2015
+ */
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+
+import model.Board;
+
+/**
+ * Creates a Tetris GUI that contains a JPane that is the game board.
+ * 
+ * @author Jeremy Wolf
+ * @version 24 November 2015
+ */
+public class TetrisGUI extends JPanel implements Observer {
+
+    /**
+     * A generated serial version UID for object Serialization.
+     */
+    private static final long serialVersionUID = 6976966673265920001L;
+    
+    /**
+     * Static Field for Border Color.
+     */
+    private static final Color COLOR_DARK_GREEN = new Color(88, 122, 23);
+    
+    /**
+     * Field to store the main JFrame.
+     */
+    private final JFrame myMainFrame;
+    
+    /**
+     * Field to store the next piece drawing panel.
+     */
+    private TetrisNextPiecePanel myNextPiece;
+    
+    /**
+     * Field to store the drawing Panel for the Game board.
+     */
+    private TetrisDrawingPanel myTetrisBoard;
+    
+    /**
+     * Field to store Tetris Timer.
+     */
+    private final TetrisTimer myTimer;
+    
+    /**
+     * Field to store the Tetris Board.
+     */
+    private final Board myBoard;
+    
+    /**
+     * Field to store the West JPanel.
+     */
+    private final JPanel mySidePanelWest;
+    
+    /**
+     * Field to store the BombTracker JPanel.
+     */
+    private BombTracker myBombTracker;
+    
+//    /**
+//     * Field to store the East JPanel.
+//     */
+//    private final JPanel myEastPanel;
+    
+    /**
+     * Field to store the Info JPanel.
+     */
+    private final JPanel myInfoPanel;
+    
+    /**
+     * Field to store boolean for is game paused.
+     */
+    private boolean myPause;
+    
+    /**
+     * Field to store the PieceMovement Object.
+     */
+    private PieceMovement myPieceMovement;
+    
+    private ScorePanel myCenterPanel;
+    
+
+    
+    /**
+     * Constructor for the TetrisGUI.
+     */
+    public TetrisGUI() {
+        super(new BorderLayout());
+        myMainFrame = new JFrame("Tetris");
+        myBoard = new Board(10, 20);
+        mySidePanelWest = createWestPanel();
+        myPieceMovement = new PieceMovement(myBoard);
+        myInfoPanel = setUpInfoPanel();
+        setUpComponents();
+        myTimer = new TetrisTimer(myBoard, myCenterPanel);
+        myTimer.start();
+    }
+    
+    /**
+     * Sets up the GUI Components.
+     */
+    private void setUpComponents() {
+        myPause = false;
+        final GradientPanel gPanel = new GradientPanel(myMainFrame); 
+        gPanel.setLayout(new BorderLayout());
+        myMainFrame.setContentPane(gPanel);
+
+        this.setOpaque(false);
+        myMainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myBombTracker = bombTrackerPanel();
+        gPanel.add(this);
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        myCenterPanel = createMiddlePanel();
+        
+        myTetrisBoard = new TetrisDrawingPanel(350, 700, myBoard, myCenterPanel);
+        
+        myNextPiece = new TetrisNextPiecePanel(190, 160, myBoard);
+        mySidePanelWest.add(myNextPiece);
+        mySidePanelWest.add(Box.createVerticalStrut(20));
+        mySidePanelWest.add(myCenterPanel);
+        mySidePanelWest.add(Box.createVerticalStrut(20));
+        
+
+        mySidePanelWest.setOpaque(false);
+        
+        
+        myMainFrame.addKeyListener(myPieceMovement); 
+        myBoard.addObserver(myCenterPanel);
+        myMainFrame.setFocusable(true);
+        mySidePanelWest.add(myInfoPanel);
+        mySidePanelWest.add(Box.createVerticalStrut(20));
+        mySidePanelWest.add(myBombTracker);
+        add(myTetrisBoard);
+        JPanel middleSpace = setUpSpacerPanel();
+        add(middleSpace);
+        JPanel eastSpace =setUpSpacerPanel();
+        setUpBorderPanels();
+        add(mySidePanelWest);
+        add(eastSpace);
+
+        
+        
+        myBoard.addObserver(this);
+        
+        final JMenuBar menu = tetrisMenu();
+        myMainFrame.setJMenuBar(menu);
+        myMainFrame.add(this);
+        myMainFrame.setMaximumSize(new Dimension (620, 720));
+        myMainFrame.setMinimumSize(new Dimension (620, 720));
+        myMainFrame.pack();
+        myMainFrame.setVisible(true);
+    }
+    
+
+    /**
+     * Sets up the West JPanel.
+     * 
+     * @return the West JPanel.
+     */
+    private JPanel createWestPanel() {
+        final JPanel sidePanelWest = new JPanel();
+        sidePanelWest.setMinimumSize(new Dimension (200, 700));
+        sidePanelWest.setMaximumSize(new Dimension (200, 700));
+        sidePanelWest.setLayout(new BoxLayout(sidePanelWest, BoxLayout.Y_AXIS));
+        sidePanelWest.setAlignmentX(CENTER_ALIGNMENT);
+        return sidePanelWest;
+    }
+    
+    
+    /**
+     * Sets up the middle JPanel.
+     * 
+     * @return the middle JPanel.
+     */
+    private ScorePanel createMiddlePanel() {
+        final ScorePanel middlePanel = new ScorePanel(myBombTracker);
+        middlePanel.setMinimumSize(new Dimension(190, 160));
+        middlePanel.setMaximumSize(new Dimension(190, 160));
+        return middlePanel;
+    }
+    
+    /**
+     * Sets up the Info Panel with controller information. 
+     * 
+     * @return the InfoPanel.
+     */
+    private InfoPanel setUpInfoPanel() {
+        InfoPanel infoPanel = new InfoPanel(myPieceMovement);
+        infoPanel.setMinimumSize(new Dimension(200, 200));
+        infoPanel.setMaximumSize(new Dimension(200, 200));
+        return infoPanel;
+        
+        
+        
+    }
+    
+    private void setUpBorderPanels() {
+        JPanel westPanel = new JPanel();
+        JPanel northPanel = new JPanel();
+        JPanel southPanel = new JPanel();
+        Dimension newNS = new Dimension(350, 20);
+        Dimension newW = new Dimension(20, 700);
+        westPanel.setOpaque(false);
+        southPanel.setOpaque(false);
+        northPanel.setOpaque(false);
+        westPanel.setPreferredSize(newW);
+        northPanel.setPreferredSize(newNS);
+        southPanel.setPreferredSize(newNS);
+        myMainFrame.add(southPanel, BorderLayout.SOUTH);
+        myMainFrame.add(northPanel, BorderLayout.NORTH);
+        myMainFrame.add(westPanel, BorderLayout.WEST);
+    }
+    
+    private JPanel setUpSpacerPanel() {
+        Dimension newW = new Dimension(20, 700);
+        JPanel space = new JPanel();
+        space.setMaximumSize(newW);
+        space.setMinimumSize(newW);
+        space.setOpaque(false);
+        
+        return space;
+    }
+    
+    private BombTracker bombTrackerPanel() {
+        BombTracker bT = new BombTracker();
+        Dimension newD = new Dimension(200, 100);
+        myPieceMovement.addPropertyChangeListener(bT);
+        bT.setMaximumSize(newD);
+        bT.setMinimumSize(newD);
+        return bT;
+        
+    }
+    /**
+     * Update method when notification is received from the Observable object.
+     */
+    @Override
+    public void update(final Observable theObject, final Object theArg) {
+        if (myBoard.isGameOver()) {
+            myTimer.stop();
+            gameOver();
+        }
+    } 
+    
+    /**
+     * Pops up a JOptionPane to tell the player the game is over.
+     */
+    private void gameOver() {
+        JOptionPane.showMessageDialog(null, "Game Over!", 
+                                      "Game Over", JOptionPane.PLAIN_MESSAGE);
+    }
+    
+    /**
+     * Creates the JMenuBar for the Tetris MainFrame.
+     * 
+     * @return the JMenuBar.
+     */
+    private JMenuBar tetrisMenu() {
+        final JMenuBar menuBar = new JMenuBar();
+        final JMenu file = new JMenu("File");
+        menuBar.add(file);
+        final JMenuItem pauseItem = new JMenuItem("Pause");
+        final JMenuItem newGameItem = new JMenuItem("New Game");
+        final JMenuItem endItem = new JMenuItem("End Game");
+        final JMenuItem close = new JMenuItem("Close");
+        pause(pauseItem);
+        file.add(pauseItem);
+        file.add(newGameItem);
+        newGame(newGameItem);
+        endGame(endItem);
+        file.add(endItem);
+
+        
+        
+        file.addSeparator();
+        file.add(close);
+        final JMenu size = new JMenu("Size");
+        menuBar.add(size);
+        final JMenu windowSize = sizeMenu();
+        size.add(windowSize);
+        return menuBar;
+    }
+    
+    /**
+     * Creates a JMenuItem that will pause and unpause the game.
+     * @param thePause is the pause JMenuItem.
+     */
+    private void pause(final JMenuItem thePause) {
+
+        thePause.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvt) {
+                if (myPause) {
+                    myTimer.start();
+                    myPause = false;
+                    myPieceMovement.setPause(false);
+                } else {
+                    myTimer.stop();
+                    myPause = true;
+                    myPieceMovement.setPause(true);
+               
+                }
+            } 
+        });
+    }
+    
+    /**
+     * Creates a JMenuItem that will end the game.
+     * @param theItem is the End Game JMenuItem.
+     */
+    private void endGame(final JMenuItem theItem) {
+        theItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvt) {
+                myTimer.stop();
+                myPause = true;
+                myPieceMovement.setPause(true);
+                gameOver();
+                
+            }
+            
+        });
+    }
+    
+    /**
+     * Creates a JMenuItem that will create a new game.
+     * @param theItem is the New Game JMenuItem.
+     */
+    private void newGame(final JMenuItem theItem) {
+        theItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvt) {
+                myBoard.newGame(10, 20, null);
+                myTimer.start();
+            }
+            
+        });
+    }
+    
+    /**
+     * Creates the size menu. This method creates three resize options.
+     * @return the Size menu JMenu object.
+     */
+    private JMenu sizeMenu() {
+        final JMenu windowSize = new JMenu("Window Size");
+        final ButtonGroup groupOne = new ButtonGroup();
+        final JRadioButton one = new JRadioButton("Large");
+        windowSize.add(one);
+        one.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myTetrisBoard.setGameSize(350, 700, 35); 
+                myNextPiece.setGameSize(200, 200, 35);
+                Dimension size = new Dimension(200, 700);
+                mySidePanelWest.setMinimumSize(size);
+                mySidePanelWest.setMaximumSize(size);
+                size = new Dimension(200, 200);
+                myInfoPanel.setMinimumSize(size);
+                myInfoPanel.setMaximumSize(size);
+                myMainFrame.setMaximumSize(new Dimension (550, 720));
+                myMainFrame.setMinimumSize(new Dimension (550, 720));
+                myMainFrame.pack();
+            }
+            
+        });
+        
+        groupOne.add(one);
+        final JRadioButton two = new JRadioButton("Medium");
+        windowSize.add(two);
+        two.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myTetrisBoard.setGameSize(300, 600, 30); 
+                myNextPiece.setGameSize(180, 180, 30);
+                Dimension size = new Dimension(225, 600);
+                mySidePanelWest.setMinimumSize(size);
+                mySidePanelWest.setMaximumSize(size);
+                size = new Dimension(180, 180);
+                myInfoPanel.setMinimumSize(size);
+                myInfoPanel.setMaximumSize(size);
+                myMainFrame.setMaximumSize(new Dimension (530, 660));
+                myMainFrame.setMinimumSize(new Dimension (530, 660));
+                myMainFrame.pack();
+            }
+            
+        });
+        groupOne.add(two);
+        final JRadioButton three = new JRadioButton("Small");
+        windowSize.add(three);
+        three.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                myTetrisBoard.setGameSize(200, 400, 20); 
+                myNextPiece.setGameSize(120, 120, 20);
+                Dimension size = new Dimension(180, 400);
+                mySidePanelWest.setMinimumSize(size);
+                mySidePanelWest.setMaximumSize(size);
+                size = new Dimension(140, 120);
+                myInfoPanel.setMinimumSize(size);
+                myInfoPanel.setMaximumSize(size);
+                myMainFrame.setMaximumSize(new Dimension (380, 460));
+                myMainFrame.setMinimumSize(new Dimension (380, 460));
+                myMainFrame.pack();
+            } 
+        });
+        
+        groupOne.add(three);
+        return windowSize;
+    }
+}
+
+
